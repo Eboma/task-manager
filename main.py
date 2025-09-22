@@ -11,10 +11,12 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///taskmanager.db'
 app.config['SECRET_KEY'] = '12301!@ebome#tunde%%123'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+db = SQLAlchemy(app)
+
 #Login Manager
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = "login"  # type: ignore
+login_manager.login_view = "login"
 
 
 
