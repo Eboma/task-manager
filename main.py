@@ -81,7 +81,7 @@ def register():
     if password_data is None:
       flash('Password is required')
       return render_template('register.html', form=form)
-    
+      
     hashed_password = generate_password_hash(password_data, method='sha256')
     
     # Create new user
