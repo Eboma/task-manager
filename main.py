@@ -7,7 +7,14 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 #Initialize the Flask application
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 's'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///taskmanager.db'
+app.config['SECRET_KEY'] = '12301!@ebome#tunde%%123'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+#Login Manager
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"  # type: ignore
 
 
 
