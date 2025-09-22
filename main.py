@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 #Initialize the Flask application
 app = Flask(__name__)
-
+app.config['SQLALCHEMY_DATABASE_URI'] = 's'
 
 
 
