@@ -1,7 +1,11 @@
+from enum import unique
 from flask import Flask, render_template, session, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from sqlalchemy import Nullable
+from sqlalchemy.orm import backref
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime, timezone
 
 
 
@@ -16,7 +20,55 @@ db = SQLAlchemy(app)
 #Login Manager
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = "login"
+login_manager.login_view = "login"  # type: ignore
+
+
+#User and Task Models
+
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+
+    tasks = db.relationship("Task", backref="owner", lazy=True)
+
+class Task(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.String(200), nullable=False)
+    status = db.Column(db.String(50), nullable=False, default="Pending")
+    date_create = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
