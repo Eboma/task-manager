@@ -1,10 +1,22 @@
-from flask import Flask
+from flask import Flask, render_template, session, redirect, url_for, flash
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 
+
+
+#Initialize the Flask application
 app = Flask(__name__)
 
+
+
+
+
 @app.route('/')
-def hello():
-    return "Hello, World! Flask is working!"
+def index():
+  return 'Hello World!!'
+
+
+
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+   app.run(host='0.0.0.0', port=5000, debug=True)
