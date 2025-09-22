@@ -52,18 +52,26 @@ def load_user(user_id):
 
 #Using WTF to create forms
 
+
 class LoginForm(FlaskForm):
-  username = StringField('Useranme', validators=[InputRequired(), Length(min=4, max=20)])
-  password = PasswordField('Password',validators=[InputRequired()])
+  username = StringField('Useranme',
+                         validators=[InputRequired(),
+                                     Length(min=4, max=20)])
+  password = PasswordField('Password', validators=[InputRequired()])
   submit = SubmitField('Login')
 
+
 class RegisterForm(FlaskForm):
-  username = StringField('Username: ', validators=[InputRequired(), Length(min=8, max=20)])
-  email = EmailField('Email: ', validators=[InputRequired(), Length(min=8, max=20)])
-  password = PasswordField('Password: ', validators=[InputRequired(), Length(min=8, max=20)])
+  username = StringField('Username: ',
+                         validators=[InputRequired(),
+                                     Length(min=8, max=20)])
+  email = EmailField('Email: ',
+                     validators=[InputRequired(),
+                                 Length(min=8, max=20)])
+  password = PasswordField('Password: ',
+                           validators=[InputRequired(),
+                                       Length(min=8, max=20)])
   submit = SubmitField('Submit')
-
-
 
 
 #Routes
@@ -72,64 +80,39 @@ def index():
   return render_template('index.html')
 
 
-@app.route('/register', methods=['GET', 'POST'])
+@app.route('/register', methods=['GET','POST'])
 def register():
   form = RegisterForm()
   if form.validate_on_submit():
-    # Type check to ensure password data is not None
-    password_data = form.password.data
-    if password_data is None:
+
+    password = form.password.data
+    username = form.username.data
+    email = form.email.data
+    session['username'] = username
+    if password is None:
       flash('Password is required')
       return render_template('register.html', form=form)
-      
-    hashed_password = generate_password_hash(password_data, method='sha256')
-    
-    # Create new user
-    new_user = User(
-      username=form.username.data,
-      email=form.email.data,
-      password=hashed_password
-    )
-    
-    try:
-      db.session.add(new_user)
-      db.session.commit()
-      flash('Registration successful!')
-      return redirect(url_for('login'))
-    except Exception as e:
-      db.session.rollback()
-      flash('Username or email already exists')
-      return render_template('register.html', form=form)
-  
-  return render_template('register.html', form=form)
+
+    hashed_password = generate_password_hash(password, method='sha256')
+    new_user = User(username=username, email=email, password=hashed_password)
 
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-  form = LoginForm()
-  if form.validate_on_submit():
-    # Type check to ensure password data is not None
-    password_data = form.password.data
-    if password_data is None:
-      flash('Password is required')
-      return render_template('login.html', form=form)
-    
-    user = User.query.filter_by(username=form.username.data).first()
-    
-    if user and check_password_hash(user.password, password_data):
-      login_user(user)
-      return redirect(url_for('index'))
-    else:
-      flash('Invalid username or password')
-  
-  return render_template('login.html', form=form)
 
 
-@app.route('/logout')
-@login_required
-def logout():
-  logout_user()
-  return redirect(url_for('index'))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 if __name__ == '__main__':
