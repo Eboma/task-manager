@@ -19,10 +19,10 @@ import os
 # Initialize the Flask application
 load_dotenv()
 app = Flask(__name__, template_folder='templates')
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///taskmanager.db'
+
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
     "DATABASE_URL", "sqlite:///taskmanager.db"
-)
+).replace("postgres://", "postgresql+psycopg://")
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
