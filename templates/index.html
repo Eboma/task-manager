@@ -1,1 +1,60 @@
 {% extends 'base.html'  %}
+
+{% block title %} Home Page {% endblock %}
+
+{% block body %}
+
+<div class='container text-center mt-5'>
+  <div class="row col-sm-12 col-md-12 col-lg-12">
+    <h1>Welcome To Your Task Manager</h1>
+    <h3>Organize your tasks in best possible way to meet-up with your deadlines.</h3>
+    
+  </div>
+</div>
+
+<div class="justify-content-center text-center mt-5">
+<a href="{{url_for('login')}}" class="btn btn-success btn-lg border-0"/>Get Started</a>
+</div>
+
+
+<div class="container mt-5">
+<h1>Tasks: </h1>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Status</th>
+        <th>Date</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Visit Bona</td>
+        <td class="text-warning fw-bold">Pending</td>
+        <td>2025-09-22</td>
+        <td><button type="button" class="btn btn-danger disabled">Delete</button></td>
+      </tr>
+      <tr>
+        <td>Board Meeting</td>
+        <td class="text-success fw-bold">Completed</td>
+        <td>2025-09-18</td>
+        <td><button type="button" class="btn btn-danger disabled">Delete</button></td>
+      </tr>
+      <tr>
+        <td>Buy Gloceries</td>
+        <td class="text-warning fw-bold">Pending</td>
+        <td>2025-09-31</td>
+        <td><button type="button" class="btn btn-danger disabled">Delete</button></td>
+      </tr>
+      <tr>
+        <td>Pay School Fees</td>
+        <td class="text-warning fw-bold">Pending</td>
+        <td>2025-09-31</td>
+        <td><button type="button" class="btn btn-danger disabled">Delete</button></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

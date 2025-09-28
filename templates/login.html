@@ -1,0 +1,42 @@
+{% extends 'base.html'  %}
+
+{% block title %} Home Page {% endblock %}
+
+{% block body %}
+<div class="container mt-5 mb-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-lg p-4">
+        <h2 class="text-center mb-4">Login to Manage Your Tasks</h2>
+
+        <form action="{{ url_for('login') }}" method="POST">
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            {{ form.username.label(class="form-label fw-bold") }}
+            {{ form.username(class="form-control", placeholder="Enter your username") }}
+          </div>
+
+          <div class="mb-3">
+            {{ form.password.label(class="form-label fw-bold") }}
+            {{ form.password(class="form-control", placeholder="Enter your password") }}
+          </div>
+
+          <div class="d-grid">
+            {{ form.submit(class="btn l-btn btn-lg border-0") }}
+          </div>
+          <div class="text-center mt-2">
+            <a href="{{ url_for('forgotpassword')}}"><strong> Forgot Password? </strong></a>
+          </div>
+          <div>
+            <p class="text-center mt-3">Don't have an Account? <a href="{{ url_for('register')}}"><strong>Click to Register</strong></a></p>
+          </div>
+          
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
