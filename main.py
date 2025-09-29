@@ -75,6 +75,10 @@ class Task(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 
+with app.app_context():
+    db.create_all()  # Create database tables
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(User, int(user_id))
@@ -332,7 +336,5 @@ def reset_token(token):
 
 
 if __name__ == '__main__':
-    with app.app_context():
-        
-        db.create_all()  # Create database tables
+
     app.run(host='0.0.0.0', port=5000, debug=True)
