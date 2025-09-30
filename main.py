@@ -20,9 +20,15 @@ import os
 load_dotenv()
 app = Flask(__name__, template_folder='templates')
 
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
-    "DATABASE_URL", "sqlite:///taskmanager.db"
-).replace("postgres://", "postgresql+psycopg://")
+
+uri = os.getenv("DATABASE_URL", "sqlite:///taskmanager.db")
+if uri.startswith("postgres://"):
+    uri = uri.replace("postgres://", "postgresql+psycopg://", 1)
+# Ensure sslmode=require is added
+if "sslmode" not in uri and uri.startswith("postgresql"):
+    uri += "?sslmode=require"
+
+app.config['SQLALCHEMY_DATABASE_URI'] = uri
 app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "fallback-secret-key")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -321,7 +327,7 @@ def reset_token(token):
         email = s.loads(token, salt='password-reset', max_age=3600)
     except (SignatureExpired, BadSignature):
         flash('The password reset link is invalid or has expired.', 'danger')
-        return redirect(url_for('forgot'))
+        return redirect(url_for('forgotpassword'))
 
     if request.method == "POST":
         new_password = form.password.data
