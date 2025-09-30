@@ -11,7 +11,7 @@ from wtforms import StringField, PasswordField, SubmitField, EmailField, TextAre
 from wtforms.validators import InputRequired, Length, equal_to
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
-
+from urllib.parse import urlparse
 from dotenv import load_dotenv
 import os
 
@@ -21,21 +21,24 @@ load_dotenv()
 app = Flask(__name__, template_folder='templates')
 
 
-uri = os.getenv("DATABASE_URL", "sqlite:///taskmanager.db")
-if uri.startswith("postgres://"):
-    uri = uri.replace("postgres://", "postgresql+psycopg://", 1)
-# Ensure sslmode=require is added
-if "sslmode" not in uri and uri.startswith("postgresql"):
-    uri += "?sslmode=require"
+db_url = os.getenv("DATABASE_URL", "sqlite:///taskmanager.db")
 
-app.config['SQLALCHEMY_DATABASE_URI'] = uri
+# Render gives DATABASE_URL starting with postgres://, fix it
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+# Force SSL for Postgres on Render
+if db_url.startswith("postgresql") and "sslmode" not in db_url:
+    db_url += "?sslmode=require"
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "fallback-secret-key")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Email config (use Gmail or SMTP server)
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_SERVER'] = os.getenv("MAIL_SERVER", "smtp.gmail.com")
+app.config['MAIL_PORT'] = int(os.getenv("MAIL_PORT", 587))
+app.config['MAIL_USE_TLS'] = os.getenv("MAIL_USE_TLS", "True") == "True"
 app.config['MAIL_USERNAME'] = os.environ.get("MAIL_USERNAME")
 app.config['MAIL_PASSWORD'] = os.environ.get("MAIL_PASSWORD")
 app.config['MAIL_DEFAULT_SENDER'] = os.environ.get("MAIL_USERNAME")
@@ -299,24 +302,28 @@ def edittask(task_id):
 def forgotpassword():
     form = ForgotPasswordForm()
     if request.method == "POST":
-        email = form.email.data
-        user = User.query.filter_by(email=email).first()
-        if user:
-            token = s.dumps(email, salt='password-reset')
-            link = url_for('reset_token', token=token, _external=True)
+        try:
+            email = form.email.data
+            user = User.query.filter_by(email=email).first()
+            if user:
+                token = user.get_reset_token()
 
             # send email
-            msg = Message('Password Reset Request',
-                          sender=app.config['MAIL_DEFAULT_SENDER'],
-                          recipients=[email])
-            msg.body = f'Your link to reset password is: {link}'
-            mail.send(msg)
-            print("Reset link :",  link)
-            flash("Check your console for the reset link (testing mode).", "info")
+                msg = Message('Password Reset Request',
+                              sender=app.config['MAIL_USERNAME'],
+                              recipients=[user.email])
+                msg.body = f"Click the link to reset your password: {url_for('reset_token', token=token, _external=True)}"
+                mail.send(msg)
+                flash("Check your console for the reset link (testing mode).", "info")
+            else:
+                flash("No account found with that email.", "warning")
 
             return redirect(url_for('login'))
-        else:
-            flash('Email not found!', 'danger')
+        except Exception as e:
+            print("Error in forgotpassword:", str(e))
+            flash("Something went wrong. Please try again later.", "danger")
+            return redirect(url_for("forgotpassword"))
+
     return render_template('forgotpassword.html', form=form)
 
 
