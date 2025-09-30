@@ -2,7 +2,7 @@ from flask import Flask, render_template, session, redirect, url_for, flash, req
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from sqlalchemy import or_
-from sqlalchemy import Nullable
+
 from sqlalchemy.orm import backref
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timezone, date
@@ -11,7 +11,7 @@ from wtforms import StringField, PasswordField, SubmitField, EmailField, TextAre
 from wtforms.validators import InputRequired, Length, equal_to
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
-from enum import unique
+
 from dotenv import load_dotenv
 import os
 
@@ -244,7 +244,7 @@ def update_status():
                               Task.status != 'Completed').all()
     for task in tasks:
         if task.due_date < today:
-            task.staus = 'Pending'
+            task.status = 'Pending'
         elif task.status == 'Completed':
             task.status = 'Completed'
         else:
@@ -301,7 +301,7 @@ def forgotpassword():
 
             # send email
             msg = Message('Password Reset Request',
-                          sender='ebomabusiness@gmail.com',
+                          sender=app.config['MAIL_DEFAULT_SENDER'],
                           recipients=[email])
             msg.body = f'Your link to reset password is: {link}'
             mail.send(msg)
@@ -336,5 +336,5 @@ def reset_token(token):
 
 
 if __name__ == '__main__':
-
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
