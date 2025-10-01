@@ -1,4 +1,4 @@
-from flask import Flask, render_template, session, redirect, url_for, flash, request
+from flask import Flask, render_template, session, redirect, url_for, flash, request, current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from sqlalchemy import or_
@@ -10,7 +10,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, EmailField, TextAreaField, SelectField, DateField
 from wtforms.validators import InputRequired, Length, equal_to
 from flask_mail import Mail, Message
-from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, URLSafeTimedSerializer, SignatureExpired, BadSignature
 from urllib.parse import urlparse
 from dotenv import load_dotenv
 import os
@@ -39,8 +39,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['MAIL_SERVER'] = os.getenv("MAIL_SERVER", "smtp.gmail.com")
 app.config['MAIL_PORT'] = int(os.getenv("MAIL_PORT", 587))
 app.config['MAIL_USE_TLS'] = os.getenv("MAIL_USE_TLS", "True") == "True"
-app.config['MAIL_USERNAME'] = os.environ.get("MAIL_USERNAME")
-app.config['MAIL_PASSWORD'] = os.environ.get("MAIL_PASSWORD")
+app.config['MAIL_USERNAME'] = 'ebotaskmanager@gmail.com' #os.environ.get("MAIL_USERNAME")
+app.config['MAIL_PASSWORD'] ='raybvgriuyfdcaxd'#os.environ.get("MAIL_PASSWORD")
 app.config['MAIL_DEFAULT_SENDER'] = os.environ.get("MAIL_USERNAME")
 
 # app.config['MAIL_SERVER'] = 'localhost'
@@ -71,6 +71,21 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(300), nullable=False)
 
     tasks = db.relationship("Task", backref="owner", lazy=True)
+
+    # Generate password reset token
+    def get_reset_token(self, expires_sec=1800):
+        s = Serializer(current_app.config['SECRET_KEY'], expires_sec)
+        return s.dumps({'user_id': self.id}).decode('utf-8')
+
+    # Verify password reset token
+    @staticmethod
+    def verify_reset_token(token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            user_id = s.loads(token)['user_id']
+        except Exception:
+            return None
+        return User.query.get(user_id)
 
 
 class Task(db.Model):
@@ -314,17 +329,25 @@ def forgotpassword():
                               recipients=[user.email])
                 msg.body = f"Click the link to reset your password: {url_for('reset_token', token=token, _external=True)}"
                 mail.send(msg)
-                flash("Check your console for the reset link (testing mode).", "info")
+                flash("Check your email for the reset link", "info")
             else:
                 flash("No account found with that email.", "warning")
 
             return redirect(url_for('login'))
         except Exception as e:
+            import traceback
             print("Error in forgotpassword:", str(e))
-            flash("Something went wrong. Please try again later.", "danger")
+            traceback.print_exc()  # full error trace in console/logs
+            # show the actual error for debugging
+            flash(f"Error: {str(e)}", "danger")
             return redirect(url_for("forgotpassword"))
 
     return render_template('forgotpassword.html', form=form)
+
+
+
+
+
 
 
 @app.route('/reset/<token>', methods=['GET', 'POST'])
@@ -346,6 +369,14 @@ def reset_token(token):
         return redirect(url_for('login'))
 
     return render_template('resetpassword.html', token=token, form=form)
+
+
+
+
+
+
+
+
 
 
 if __name__ == '__main__':
