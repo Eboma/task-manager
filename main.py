@@ -73,7 +73,7 @@ class User(UserMixin, db.Model):
     def get_reset_token(self):
         s = URLSafeTimedSerializer(
             current_app.config['SECRET_KEY'])
-        return s.dumps({'user_id': self.id})
+        return s.dumps({'user_id': self.id}, salt='password-reset')
 
     # Verify password reset token
     @staticmethod
@@ -355,22 +355,27 @@ def forgotpassword():
 @app.route('/reset/<token>', methods=['GET', 'POST'])
 def reset_token(token):
     form = ResetPasswordForm()
+    s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     try:
-        email = s.loads(token, salt='password-reset', max_age=3600)
+        data = s.loads(token, salt='password-reset', max_age=3600)
+        user_id = data['user_id']
     except (SignatureExpired, BadSignature):
         flash('The password reset link is invalid or has expired.', 'danger')
         return redirect(url_for('forgotpassword'))
 
-    if request.method == "POST":
+    if form.validate_on_submit():
         new_password = form.password.data
         hashed_pw = generate_password_hash(new_password)
-        user = User.query.filter_by(email=email).first()
+        user = User.query.get(user_id)
+        if not user:
+            flash('User not found', 'danger')
+            return redirect(url_for('forgotpassword'))
         user.password = hashed_pw
         db.session.commit()
         flash('Your password has been updated! You can now login.', 'success')
         return redirect(url_for('login'))
 
-    return render_template('resetpassword.html', token=token, form=form)
+    return render_template('resetpassword.html', form=form)
 
 
 if __name__ == '__main__':
