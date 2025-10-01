@@ -14,6 +14,8 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from urllib.parse import urlparse
 from dotenv import load_dotenv
 import os
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 
 # Initialize the Flask application
@@ -159,6 +161,23 @@ class ResetPasswordForm(FlaskForm):
     confirmpassword = PasswordField('Confirm Password: ',
                                     validators=[InputRequired(), equal_to('password', message="Passwords much match")])
     submit = SubmitField('Change Password')
+
+
+def send_reset_email(user_mail, token):
+    message = Mail(
+        from_email='ebotaskmanager@gmail.com',
+        to_emails=user_mail,
+        subject="Password Reset Request",
+        plain_text_content=f'Click the link to reset your password: '
+        f'{url_for("reset_token", token=token, _external=True)}'
+    )
+    try:
+        sg = SendGridAPIClient(os.getenv('SENDGRID_KEY'))
+        response = sg.send(message)
+        print(response.status_code, response.body, response.headers)
+    except Exception as e:
+        print("Error sending email:", e)
+
 
 # Routes
 
@@ -321,10 +340,7 @@ def forgotpassword():
 
         try:
             token = user.get_reset_token()
-            msg = Message('Password Reset Request',
-                          sender=app.config['MAIL_DEFAULT_SENDER'], recipients=[user.email])
-            msg.body = f"Click the link to reset your password: {url_for('reset_token', token=token, _external=True)}"
-            mail.send(msg)
+            send_reset_email(user.email, token)
             flash("Check your email or your spam email for the reset link", "info")
             return redirect(url_for('login'))
         except Exception as e:
