@@ -325,7 +325,7 @@ def forgotpassword():
                           sender=app.config['MAIL_DEFAULT_SENDER'], recipients=[user.email])
             msg.body = f"Click the link to reset your password: {url_for('reset_token', token=token, _external=True)}"
             mail.send(msg)
-            flash("Check your email or your spam emailfor the reset link", "info")
+            flash("Check your email or your spam email for the reset link", "info")
             return redirect(url_for('login'))
         except Exception as e:
             import traceback
