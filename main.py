@@ -375,7 +375,7 @@ def reset_token(token):
         flash('Your password has been updated! You can now login.', 'success')
         return redirect(url_for('login'))
 
-    return render_template('resetpassword.html', form=form)
+    return render_template('resetpassword.html', form=form, token=token)
 
 
 if __name__ == '__main__':
