@@ -10,7 +10,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, EmailField, TextAreaField, SelectField, DateField
 from wtforms.validators import InputRequired, Length, equal_to
 from flask_mail import Mail, Message
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, URLSafeTimedSerializer, SignatureExpired, BadSignature
+from itsdangerous import URLSafeTimedSerializer as Serializer,SignatureExpired, BadSignature
 from urllib.parse import urlparse
 from dotenv import load_dotenv
 import os
@@ -54,7 +54,7 @@ app.config['MAIL_DEFAULT_SENDER'] = os.environ.get("MAIL_USERNAME")
 db = SQLAlchemy(app)
 mail = Mail(app)
 
-s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+s = Serializer(app.config['SECRET_KEY'])
 
 # Login Manager
 login_manager = LoginManager()
