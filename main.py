@@ -10,16 +10,18 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, EmailField, TextAreaField, SelectField, DateField
 from wtforms.validators import InputRequired, Length, equal_to
 from flask_mail import Mail, Message
-from itsdangerous import URLSafeTimedSerializer as Serializer,SignatureExpired, BadSignature
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from urllib.parse import urlparse
 from dotenv import load_dotenv
 import os
 
 
 # Initialize the Flask application
-load_dotenv()
+
+
 app = Flask(__name__, template_folder='templates')
 
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
 
 db_url = os.getenv("DATABASE_URL", "sqlite:///taskmanager.db")
 
@@ -32,16 +34,19 @@ if db_url.startswith("postgresql") and "sslmode" not in db_url:
     db_url += "?sslmode=require"
 
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
-app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "fallback-secret-key")
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback_secret_key')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Email config (use Gmail or SMTP server)
 app.config['MAIL_SERVER'] = os.getenv("MAIL_SERVER", "smtp.gmail.com")
 app.config['MAIL_PORT'] = int(os.getenv("MAIL_PORT", 587))
 app.config['MAIL_USE_TLS'] = os.getenv("MAIL_USE_TLS", "True") == "True"
-app.config['MAIL_USERNAME'] = 'ebotaskmanager@gmail.com' #os.environ.get("MAIL_USERNAME")
-app.config['MAIL_PASSWORD'] ='raybvgriuyfdcaxd'#os.environ.get("MAIL_PASSWORD")
-app.config['MAIL_DEFAULT_SENDER'] = os.environ.get("MAIL_USERNAME")
+app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
+app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_USERNAME")
+
+print( 'MAIL_USERNAME' , os.getenv("MAIL_USERNAME"))
+print('MAIL_PASSWORD', os.getenv("MAIL_PASSWORD"))
 
 # app.config['MAIL_SERVER'] = 'localhost'
 # app.config['MAIL_PORT'] = 8025
@@ -54,7 +59,7 @@ app.config['MAIL_DEFAULT_SENDER'] = os.environ.get("MAIL_USERNAME")
 db = SQLAlchemy(app)
 mail = Mail(app)
 
-s = Serializer(app.config['SECRET_KEY'])
+s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
 # Login Manager
 login_manager = LoginManager()
@@ -73,14 +78,15 @@ class User(UserMixin, db.Model):
     tasks = db.relationship("Task", backref="owner", lazy=True)
 
     # Generate password reset token
-    def get_reset_token(self, expires_sec=1800):
-        s = Serializer(current_app.config['SECRET_KEY'], expires_sec)
+    def get_reset_token(self):
+        s = URLSafeTimedSerializer(
+            current_app.config['SECRET_KEY'])
         return s.dumps({'user_id': self.id})
 
     # Verify password reset token
     @staticmethod
     def verify_reset_token(token, max_age=1800):
-        s = Serializer(current_app.config['SECRET_KEY'])
+        s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
         try:
             user_id = s.loads(token, max_age=max_age)['user_id']
         except Exception:
@@ -345,11 +351,6 @@ def forgotpassword():
     return render_template('forgotpassword.html', form=form)
 
 
-
-
-
-
-
 @app.route('/reset/<token>', methods=['GET', 'POST'])
 def reset_token(token):
     form = ResetPasswordForm()
@@ -369,14 +370,6 @@ def reset_token(token):
         return redirect(url_for('login'))
 
     return render_template('resetpassword.html', token=token, form=form)
-
-
-
-
-
-
-
-
 
 
 if __name__ == '__main__':
