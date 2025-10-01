@@ -38,22 +38,12 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback_secret_key')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Email config (use Gmail or SMTP server)
-app.config['MAIL_SERVER'] = os.getenv("MAIL_SERVER", "smtp.gmail.com")
-app.config['MAIL_PORT'] = int(os.getenv("MAIL_PORT", 587))
-app.config['MAIL_USE_TLS'] = os.getenv("MAIL_USE_TLS", "True") == "True"
-app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
-app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
-app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_USERNAME")
-
-print( 'MAIL_USERNAME' , os.getenv("MAIL_USERNAME"))
-print('MAIL_PASSWORD', os.getenv("MAIL_PASSWORD"))
-
-# app.config['MAIL_SERVER'] = 'localhost'
-# app.config['MAIL_PORT'] = 8025
-# app.config['MAIL_USERNAME'] = None
-# app.config['MAIL_PASSWORD'] = None
-# app.config['MAIL_USE_TLS'] = False
-# app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_SERVER'] = 'smtp.sendgrid.net'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'apikey'
+app.config['MAIL_PASSWORD'] = os.getenv('SENDGRID_KEY')
+app.config['MAIL_DEFAULT_SENDER'] = 'ebotaskmanager@gmail.com'
 
 
 db = SQLAlchemy(app)
@@ -322,32 +312,27 @@ def edittask(task_id):
 @app.route('/forgotpassword', methods=['GET', 'POST'])
 def forgotpassword():
     form = ForgotPasswordForm()
-    if request.method == "POST":
+    if request.method == "POST" and form.validate_on_submit():
+        email = form.email.data
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            flash('No account found with this enterred email', 'danger')
+            return redirect(url_for('forgotpassword'))
+
         try:
-            email = form.email.data
-            user = User.query.filter_by(email=email).first()
-            if user:
-                token = user.get_reset_token()
-
-            # send email
-                msg = Message('Password Reset Request',
-                              sender=app.config['MAIL_USERNAME'],
-                              recipients=[user.email])
-                msg.body = f"Click the link to reset your password: {url_for('reset_token', token=token, _external=True)}"
-                mail.send(msg)
-                flash("Check your email for the reset link", "info")
-            else:
-                flash("No account found with that email.", "warning")
-
+            token = user.get_reset_token()
+            msg = Message('Password Reset Request',
+                          sender=app.config['MAIL_DEFAULT_SENDER'], recipients=[user.email])
+            msg.body = f"Click the link to reset your password: {url_for('reset_token', token=token, _external=True)}"
+            mail.send(msg)
+            flash("Check your email or your spam emailfor the reset link", "info")
             return redirect(url_for('login'))
         except Exception as e:
             import traceback
             print("Error in forgotpassword:", str(e))
-            traceback.print_exc()  # full error trace in console/logs
-            # show the actual error for debugging
+            traceback.print_exc()
             flash(f"Error: {str(e)}", "danger")
-            return redirect(url_for("forgotpassword"))
-
+            return redirect(url_for('forgotpassword'))
     return render_template('forgotpassword.html', form=form)
 
 
