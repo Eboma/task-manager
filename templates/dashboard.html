@@ -91,7 +91,7 @@
                {% for task in tasks %}
                  <tr>
                    <td>{{ task.title | title }}</td>
-                   <td class="{% if task.status == 'Complete' %}text-success fw-bold{% else %}text-warming fw-bold{% endif %}">{{ task.status }}</td>
+                   <td class="{% if task.status == 'Complete' %}text-success fw-bold{% else %}text-warning fw-bold{% endif %}">{{ task.status }}</td>
                    <td>{{ task.date_created.strftime('%Y-%m-%d') }}</td>
                    <td>{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else '' }}</td>
                    <td>
