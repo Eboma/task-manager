@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %} About Page {% endblock %}
+
+{% block body %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-sm-10 col-md-8 col-lg-6">
+            <div class="card shadow-sm p-4 rounded-4">
+            <h2 class="text-center mb-4">About Task Manager</h2>
+            <p><strong>Task Manager:</strong> Is a simple yet powerful web application designed to help individuals and teams organize, track, and
+            complete their daily tasks efficiently. Built with a focus on productivity and clean user experience, Task Manager
+            allows users to create, update, and manage tasks in one central place ensuring nothing important slips through the
+            cracks.</p>
+            <p><strong>Our Purpose:</strong> Task Manager was developed to solve one core problem: staying organized in a busy world. Whether you’re managing a
+            personal to-do list, coordinating work projects, or tracking deadlines, Task Manager gives you the tools to stay on top
+            of every detail from start to finish.</p>
+            <p><strong>Built With:</strong> Task Manager was developed to solve one core problem: staying organized in a busy world.
+                Whether you’re managing a
+                personal to-do list, coordinating work projects, or tracking deadlines, Task Manager gives you the tools to stay on
+                top
+                of every detail — from start to finish.</p>
+            <p><strong>The Vision:</strong> Our vision is to build a smarter way to manage time and productivity, empowering users to focus more on meaningful work
+            and less on managing chaos.</p>
+
+
+          <div>
+            <a class="btn l-btn text-center mb-4" href="{{ url_for('index')}}">Back To Homepage</a>
+          </div>
+                
+         </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
