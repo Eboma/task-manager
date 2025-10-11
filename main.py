@@ -144,7 +144,7 @@ class TaskForm(FlaskForm):
                                   ('Completed', 'Completed')],
                          default='Pending')
     due_date = DateField('Due Date', default=date.today, format='%Y-%m-%d')
-    submit = SubmitField('Add Task')
+    submit = SubmitField('Submit')
 
 
 class ForgotPasswordForm(FlaskForm):
@@ -185,6 +185,7 @@ def send_reset_email(user_mail, token):
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route('/about')
 def about():
@@ -254,6 +255,7 @@ def logout():
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     form = TaskForm()
+    form.submit.label.text = 'Add Task'
     if form.validate_on_submit():
         try:
             title = form.title.data
@@ -319,13 +321,16 @@ def delete_task(task_id):
 def edittask(task_id):
     task = Task.query.get_or_404(task_id)
     form = TaskForm(obj=task)
+    form.submit.label.text = 'Update Task'
     if form.validate_on_submit():
         task.title = form.title.data
         task.description = form.description.data
         task.status = form.status.data
         task.due_date = form.due_date.data
+
         db.session.commit()
         flash('Task updated successfully', 'success')
+        return redirect(url_for('dashboard'))
     else:
         flash('Error in updating task', 'danger')
 
