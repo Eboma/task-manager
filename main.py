@@ -184,21 +184,21 @@ def send_reset_email(user_mail, token):
 
 @app.route('/')
 def index():
-    if current_user.is_authencated:
+    if current_user.is_authenticated:
         return redirect('dashboard')
     return render_template('index.html')
 
 
 @app.route('/about')
 def about():
-    if current_user.is_authencated:
+    if current_user.is_authenticated:
         return redirect('dashboard')
     return render_template('about.html')
 
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    if current_user.is_authencated:
+    if current_user.is_authenticated:
         return redirect('dashboard')
     form = RegisterForm()
     if request.method == 'POST':
@@ -235,8 +235,8 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if current_user.is_authencated:
-        return redirect('dashboard')
+    if current_user.is_authenticated:
+       return redirect('dashboard')
     form = LoginForm()
     if request.method == 'POST':
         if form.validate_on_submit():
@@ -262,8 +262,7 @@ def logout():
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
-    if current_user.is_authencated:
-        return redirect('dashboard')
+    
     form = TaskForm()
     form.submit.label.text = 'Add Task'
     if form.validate_on_submit():
@@ -294,8 +293,7 @@ def dashboard():
 
 @app.route('/update_status')
 def update_status():
-    if current_user.is_authencated:
-        return redirect('dashboard')
+    
     today = date.today()
     tasks = Task.query.filter(Task.due_date < today,
                               Task.status != 'Completed').all()
@@ -312,16 +310,14 @@ def update_status():
 
 @app.route('/taskdetails/<int:task_id>')
 def taskdetails(task_id):
-    if current_user.is_authencated:
-        return redirect('dashboard')
+    
     task = Task.query.get_or_404(task_id)
     return render_template('taskdetails.html', task=task)
 
 
 @app.route('/delete_task/<int:task_id>', methods=['GET', 'POST'])
 def delete_task(task_id):
-    if current_user.is_authencated:
-        return redirect('dashboard')
+   
     if request.method == 'POST':
         task = Task.query.get_or_404(task_id)
         db.session.delete(task)
@@ -335,8 +331,7 @@ def delete_task(task_id):
 
 @app.route('/edittask/<int:task_id>', methods=['GET', 'POST'])
 def edittask(task_id):
-    if current_user.is_authencated:
-        return redirect('dashboard')
+   
     task = Task.query.get_or_404(task_id)
     form = TaskForm(obj=task)
     form.submit.label.text = 'Update Task'
@@ -357,8 +352,7 @@ def edittask(task_id):
 
 @app.route('/forgotpassword', methods=['GET', 'POST'])
 def forgotpassword():
-    if current_user.is_authencated:
-        return redirect('dashboard')
+   
     form = ForgotPasswordForm()
     if request.method == "POST" and form.validate_on_submit():
         email = form.email.data
@@ -383,8 +377,7 @@ def forgotpassword():
 
 @app.route('/reset/<token>', methods=['GET', 'POST'])
 def reset_token(token):
-    if current_user.is_authencated:
-        return redirect('dashboard')
+    
     form = ResetPasswordForm()
     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     try:
