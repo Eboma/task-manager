@@ -199,7 +199,7 @@ def about():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect('dashboard')
+        return redirect(url_for('dashboard'))
     form = RegisterForm()
     if request.method == 'POST':
         try:
@@ -236,7 +236,7 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-       return redirect('dashboard')
+        return redirect(url_for('dashboard'))
     form = LoginForm()
     if request.method == 'POST':
         if form.validate_on_submit():
