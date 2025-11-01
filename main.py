@@ -25,17 +25,18 @@ app = Flask(__name__, template_folder='templates')
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
 
-db_url = os.getenv("DATABASE_URL", "sqlite:///taskmanager.db")
+#db_url = os.getenv("DATABASE_URL", "sqlite:///taskmanager.db")
 
 # Render gives DATABASE_URL starting with postgres://, fix it
-if db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql://", 1)
+#if db_url.startswith("postgres://"):
+    #db_url = db_url.replace("postgres://", "postgresql://", 1)
 
 # Force SSL for Postgres on Render
-if db_url.startswith("postgresql") and "sslmode" not in db_url:
-    db_url += "?sslmode=require"
+#if db_url.startswith("postgresql") and "sslmode" not in db_url:
+    # db_url += "?sslmode=require"
 
-app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
+    "DATABASE_URL","sqlite:///taskmanager.db")
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback_secret_key')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
